@@ -44,8 +44,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/nodejs-shopping:latest
-            ghcr.io/${{ github.repository }}/nodejs-shopping:${{ github.sha }}
+            ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:latest
+            ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${{ github.sha }}
 
       - name: CI completed
         run: echo "Docker image pushed successfully"
