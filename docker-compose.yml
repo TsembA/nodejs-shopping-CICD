@@ -1,0 +1,31 @@
+# FILE: docker-compose.yml
+
+services:
+  app:
+    build: .
+    container_name: nodejs-shopping-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/shop
+      - SESSION_SECRET=dev-secret
+    volumes:
+      - .:/app
+      - images:/app/images
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+  images:
