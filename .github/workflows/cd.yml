@@ -16,6 +16,17 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        
+      - name: Verify GitHub OIDC access
+        run: |
+          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "NO OIDC TOKEN"
+            exit 1
+          else
+            echo "OIDC TOKEN PRESENT"
+          fi
+      
+        
 
       - name: Debug GitHub context
         run: |
