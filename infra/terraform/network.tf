@@ -1,4 +1,14 @@
-# FILE: infra/terraform/network.tf
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  az_us_west_1b = one([
+    for idx, name in data.aws_availability_zones.available.names :
+    data.aws_availability_zones.available.zone_ids[idx]
+    if name == "us-west-1b"
+  ])
+}
 
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/28"
@@ -20,7 +30,8 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
-  availability_zone       = "${var.aws_region}a"
+
+  availability_zone_id = local.az_us_west_1b
 
   tags = {
     Name    = "nodejs-shopping-public-subnet"
