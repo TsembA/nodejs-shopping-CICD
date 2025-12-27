@@ -25,9 +25,6 @@ jobs:
           else
             echo "OIDC TOKEN PRESENT"
           fi
-      
-        
-
       - name: Debug GitHub context
         run: |
           echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
@@ -57,6 +54,10 @@ jobs:
       - name: Terraform Init
         run: terraform init
         working-directory: infra/terraform
+        
+      - name: Terraform State Repair (only if needed)
+        run: |
+          terraform state list | grep aws_vpc.main && terraform state rm aws_vpc.main || true
 
       - name: Terraform Plan
         run: terraform plan -var-file=env/prod.tfvars
