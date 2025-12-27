@@ -35,7 +35,13 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -var-file=env/prod.tfvars
         working-directory: infra/terraform
+        env:
+          TF_VAR_ghcr_user: ${{ github.actor }}
+          TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file=env/prod.tfvars
         working-directory: infra/terraform
+        env:
+          TF_VAR_ghcr_user: ${{ github.actor }}
+          TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}

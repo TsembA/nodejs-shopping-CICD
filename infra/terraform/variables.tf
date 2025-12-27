@@ -11,7 +11,7 @@ variable "instance_name" {
 }
 
 variable "blueprint_id" {
-  description = "OS image"
+  description = "Lightsail OS image"
   type        = string
   default     = "ubuntu_22_04"
 }
@@ -21,7 +21,20 @@ variable "bundle_id" {
   type        = string
   default     = "nano_2_0"
 }
+
 variable "docker_image" {
   description = "Docker image to deploy"
   type        = string
+}
+
+variable "ghcr_user" {
+  description = "GHCR username"
+  type        = string
+  sensitive   = true
+}
+
+variable "ghcr_token" {
+  description = "GHCR token"
+  type        = string
+  sensitive   = true
 }
