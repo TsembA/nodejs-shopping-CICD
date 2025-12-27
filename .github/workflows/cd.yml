@@ -23,6 +23,11 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-1
 
+      - name: Fix DNS resolution
+        run: |
+          sudo rm -f /etc/resolv.conf
+          echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
