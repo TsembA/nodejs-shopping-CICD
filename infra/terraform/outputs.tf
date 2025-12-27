@@ -1,4 +1,4 @@
 output "public_ip" {
-  value       = aws_lightsail_static_ip.app_ip.ip_address
-  description = "Public IP of the application"
+  value       = aws_eip.app.public_ip
+  description = "Elastic IP of the application"
 }
