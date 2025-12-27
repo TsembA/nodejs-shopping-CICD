@@ -1,17 +1,21 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euxo pipefail
 
-apt-get update -y
+exec > >(tee /var/log/user-data.log) 2>&1
+
+apt-get update
 apt-get install -y docker.io
 
 systemctl enable docker
 systemctl start docker
 
-docker login ghcr.io -u ${ghcr_user} -p ${ghcr_token}
+usermod -aG docker ubuntu
+
+echo "${ghcr_token}" | docker login ghcr.io -u "${ghcr_user}" --password-stdin
 
 docker pull ${image}
 
 docker run -d \
-  --restart always \
+  --restart unless-stopped \
   -p 80:3000 \
   ${image}

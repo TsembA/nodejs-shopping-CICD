@@ -14,29 +14,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Verify GitHub OIDC access
-        run: |
-          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
-            echo "NO OIDC TOKEN"
-            exit 1
-          else
-            echo "OIDC TOKEN PRESENT"
-          fi
-      - name: Debug GitHub context
-        run: |
-          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
-          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "GITHUB_SHA=$GITHUB_SHA"
-
-      - name: Debug OIDC env
-        run: |
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL"
-          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN exists=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
-      
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -52,23 +31,19 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Terraform Init
-        run: terraform init
         working-directory: infra/terraform
-        
-      - name: Terraform State Repair (only if needed)
-        run: |
-          terraform state list | grep aws_vpc.main && terraform state rm aws_vpc.main || true
+        run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan -var-file=env/prod.tfvars
         working-directory: infra/terraform
-        env:
-          TF_VAR_ghcr_user: ${{ github.actor }}
-          TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          terraform plan \
+            -var-file=env/prod.tfvars \
+            -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}"
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var-file=env/prod.tfvars
         working-directory: infra/terraform
-        env:
-          TF_VAR_ghcr_user: ${{ github.actor }}
-          TF_VAR_ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          terraform apply -auto-approve \
+            -var-file=env/prod.tfvars \
+            -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}"
