@@ -24,3 +24,10 @@ docker-compose.override.yml
 # Uploads
 images/*
 !images/.gitkeep
+
+
+# Terraform
+**/.terraform/*
+**/*.tfstate
+**/*.tfstate.backup
+*.lock.hcl
