@@ -1,14 +1,26 @@
+############################
+# DATA SOURCES
+############################
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
+############################
+# LOCALS
+############################
+
 locals {
+  # Explicitly choose us-west-1b, but only if it exists in this account
   az_us_west_1b = one([
-    for idx, name in data.aws_availability_zones.available.names :
-    data.aws_availability_zones.available.zone_ids[idx]
-    if name == "us-west-1b"
+    for az in data.aws_availability_zones.available.names : az
+    if az == "us-west-1b"
   ])
 }
+
+############################
+# VPC
+############################
 
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -16,7 +28,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = var.protect_core_resources
   }
 
   tags = {
@@ -26,12 +38,15 @@ resource "aws_vpc" "main" {
   }
 }
 
+############################
+# PUBLIC SUBNET
+############################
+
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
-
-  availability_zone_id = local.az_us_west_1b
+  availability_zone       = local.az_us_west_1b
 
   tags = {
     Name    = "nodejs-shopping-public-subnet"
@@ -39,6 +54,10 @@ resource "aws_subnet" "public" {
     Managed = "terraform"
   }
 }
+
+############################
+# INTERNET GATEWAY
+############################
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
@@ -49,6 +68,10 @@ resource "aws_internet_gateway" "igw" {
     Managed = "terraform"
   }
 }
+
+############################
+# ROUTING
+############################
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
