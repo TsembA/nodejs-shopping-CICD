@@ -1,7 +1,19 @@
 # FILE: infra/terraform/network.tf
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name    = "nodejs-shopping-vpc"
+    Project = "nodejs-shopping"
+    Managed = "terraform"
+  }
 }
 
 resource "aws_subnet" "public" {
@@ -9,10 +21,22 @@ resource "aws_subnet" "public" {
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}a"
+
+  tags = {
+    Name    = "nodejs-shopping-public-subnet"
+    Project = "nodejs-shopping"
+    Managed = "terraform"
+  }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name    = "nodejs-shopping-igw"
+    Project = "nodejs-shopping"
+    Managed = "terraform"
+  }
 }
 
 resource "aws_route_table" "public" {
@@ -21,6 +45,12 @@ resource "aws_route_table" "public" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name    = "nodejs-shopping-public-rt"
+    Project = "nodejs-shopping"
+    Managed = "terraform"
   }
 }
 
