@@ -8,6 +8,10 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  TF_INPUT: "false"
+  TF_IN_AUTOMATION: "true"
+
 jobs:
   terraform:
     name: Deploy Infrastructure
@@ -37,13 +41,12 @@ jobs:
       - name: Terraform Plan
         working-directory: infra/terraform
         run: |
-          terraform plan \
+          terraform plan -input=false -lock-timeout=1m \
             -var-file=env/prod.tfvars \
-            -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}"
+            -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}" \
+            -out=tfplan
 
       - name: Terraform Apply
         working-directory: infra/terraform
         run: |
-          terraform apply -auto-approve \
-            -var-file=env/prod.tfvars \
-            -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}"
+          terraform apply -input=false -lock-timeout=1m -auto-approve tfplan

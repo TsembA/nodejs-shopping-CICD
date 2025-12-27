@@ -9,8 +9,7 @@ resource "aws_instance" "app" {
   
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     image      = var.docker_image
-    ghcr_user  = var.ghcr_user
-    ghcr_token = var.ghcr_token
+    Name       = var.instance_name
   })
 
   tags = {

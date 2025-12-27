@@ -11,8 +11,6 @@ systemctl start docker
 
 usermod -aG docker ubuntu
 
-echo "${ghcr_token}" | docker login ghcr.io -u "${ghcr_user}" --password-stdin
-
 docker pull ${image}
 
 docker run -d \

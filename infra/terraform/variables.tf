@@ -16,13 +16,3 @@ variable "instance_type" {
 variable "docker_image" {
   type = string
 }
-
-variable "ghcr_user" {
-  type      = string
-  sensitive = true
-}
-
-variable "ghcr_token" {
-  type      = string
-  sensitive = true
-}
