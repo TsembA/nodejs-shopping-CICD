@@ -18,15 +18,15 @@
         "Resource": "arn:aws:s3:::nodejs-shopping-terraform-state/*"
       },
       {
-        "Sid": "TerraformStateLocking",
+        "Sid": "TerraformDynamoDBStateLock",
         "Effect": "Allow",
         "Action": [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
-          "dynamodb:UpdateItem"
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem"
         ],
-        "Resource": "arn:aws:dynamodb:us-west-1:471112626077:table/nodejs-shopping-terraform-locks"
+        "Resource": "arn:aws:dynamodb:us-west-1:471112626077:table/terraform-state-lock"
       }
     ]
   }
