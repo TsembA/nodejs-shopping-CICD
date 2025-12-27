@@ -11,17 +11,32 @@ permissions:
 jobs:
   terraform:
     name: Deploy Infrastructure
-    runs-on: ubuntu-22.04   # ← CRITICAL FIX
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Debug GitHub context
+        run: |
+          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "GITHUB_SHA=$GITHUB_SHA"
+
+      - name: Debug OIDC env
+        run: |
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL=$ACTIONS_ID_TOKEN_REQUEST_URL"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN exists=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
+      
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-1
+          audience: sts.amazonaws.com
+          role-session-name: gha-terraform
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
