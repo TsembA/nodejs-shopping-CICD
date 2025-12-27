@@ -1,5 +1,3 @@
-# FILE: infra/terraform/ec2.tf
-
 resource "aws_instance" "app" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
@@ -17,5 +15,12 @@ resource "aws_instance" "app" {
     Name    = var.instance_name
     Project = "nodejs-shopping"
     Managed = "terraform"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [
+      user_data
+    ]
   }
 }
