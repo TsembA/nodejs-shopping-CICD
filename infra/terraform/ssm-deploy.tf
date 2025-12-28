@@ -1,16 +1,14 @@
-# FILE: infra/terraform/ssm-deploy.tf
-
 locals {
-  ssm_document_name = "NodejsShopping-DockerDeploy-v1" # bump version when logic changes
+  ssm_document_name = "NodejsShopping-DockerComposeDeploy-v1"
 }
 
-resource "aws_ssm_document" "docker_deploy" {
+resource "aws_ssm_document" "docker_compose_deploy" {
   name          = local.ssm_document_name
   document_type = "Command"
 
   content = jsonencode({
     schemaVersion = "2.2"
-    description   = "Deploy Nodejs Shopping Docker container from GHCR"
+    description   = "Deploy Nodejs Shopping via docker-compose"
 
     parameters = {
       Image = {
@@ -21,39 +19,37 @@ resource "aws_ssm_document" "docker_deploy" {
 
     mainSteps = [
       {
-        name   = "deploy"
         action = "aws:runShellScript"
-
+        name   = "deploy"
         inputs = {
           runCommand = [
-            # Fail fast, no undefined vars
-            "set -eu",
+            "set -euo pipefail",
 
-            # Explicit region for AWS CLI
             "export AWS_REGION=us-west-1",
+            "export IMAGE='{{ Image }}'",
 
-            # Ensure jq exists (SSM has no TTY, keep non-interactive)
-            "command -v jq >/dev/null 2>&1 || (apt-get update -y && apt-get install -y jq)",
+            "mkdir -p /opt/nodejs-shopping",
+            "cd /opt/nodejs-shopping",
 
-            # Stop and remove existing container FIRST (idempotent)
-            "docker stop nodejs-shopping || true",
-            "docker rm nodejs-shopping || true",
+            # Ensure docker-compose exists
+            "command -v docker-compose >/dev/null 2>&1 || (echo 'docker-compose missing' && exit 1)",
 
-            # Fetch GHCR credentials from Secrets Manager
+            # Fetch GHCR credentials
             "SECRET_JSON=$(aws secretsmanager get-secret-value --region $AWS_REGION --secret-id ghcr/nodejs-shopping --query SecretString --output text)",
             "GHCR_USER=$(echo \"$SECRET_JSON\" | jq -r .username)",
             "GHCR_TOKEN=$(echo \"$SECRET_JSON\" | jq -r .token)",
 
-            # Validate secrets
-            "[ -n \"$GHCR_USER\" ] || (echo 'ERROR: GHCR username is empty' && exit 1)",
-            "[ -n \"$GHCR_TOKEN\" ] || (echo 'ERROR: GHCR token is empty' && exit 1)",
+            "[ -n \"$GHCR_USER\" ] || (echo 'GHCR username empty' && exit 1)",
+            "[ -n \"$GHCR_TOKEN\" ] || (echo 'GHCR token empty' && exit 1)",
 
-            # Authenticate to GHCR
             "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
 
-            # Pull and start container LAST
-            "docker pull {{ Image }}",
-            "docker run -d --restart unless-stopped --name nodejs-shopping -p 80:3000 {{ Image }}"
+            # Write docker-compose file (idempotent)
+            "cat > docker-compose.yml << 'EOF'\nversion: \"3.8\"\n\nservices:\n  app:\n    image: ${IMAGE}\n    container_name: nodejs-shopping-app\n    ports:\n      - \"80:3000\"\n    environment:\n      PORT: \"3000\"\n      MONGODB_URI: \"mongodb://mongo:27017/shop\"\n      SESSION_SECRET: \"prod-secret\"\n    depends_on:\n      - mongo\n    restart: unless-stopped\n\n  mongo:\n    image: mongo:6\n    container_name: nodejs-shopping-mongo\n    volumes:\n      - mongo-data:/data/db\n    restart: unless-stopped\n\nvolumes:\n  mongo-data:\nEOF",
+
+            # Deploy
+            "docker-compose pull",
+            "docker-compose up -d"
           ]
         }
       }
