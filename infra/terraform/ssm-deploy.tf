@@ -4,6 +4,10 @@ resource "aws_ssm_document" "docker_deploy" {
   name          = "NodejsShopping-DockerDeploy"
   document_type = "Command"
 
+  lifecycle {
+    create_before_destroy = true // added
+  }
+
   content = jsonencode({
     schemaVersion = "2.2"
     description   = "Deploy Nodejs Shopping Docker container from GHCR"
@@ -21,42 +25,27 @@ resource "aws_ssm_document" "docker_deploy" {
         name   = "deploy"
         inputs = {
           runCommand = [
-            # ------------------------------------------------------------
-            # Strict mode
-            # ------------------------------------------------------------
             "set -euo pipefail",
 
-            # ------------------------------------------------------------
-            # Environment (SSM does NOT inject region automatically)
-            # ------------------------------------------------------------
+            # Explicit region for AWS CLI inside SSM
             "export AWS_REGION=us-west-1",
 
-            # ------------------------------------------------------------
-            # Ensure required tools exist (idempotent)
-            # ------------------------------------------------------------
+            # Ensure jq exists (idempotent)
             "command -v jq >/dev/null 2>&1 || (apt-get update -y && apt-get install -y jq)",
 
-            # ------------------------------------------------------------
-            # Fetch GHCR credentials from Secrets Manager
-            # ------------------------------------------------------------
+            # Fetch GHCR credentials
             "SECRET_JSON=$(aws secretsmanager get-secret-value --region $AWS_REGION --secret-id ghcr/nodejs-shopping --query SecretString --output text)",
             "GHCR_USER=$(echo \"$SECRET_JSON\" | jq -r .username)",
             "GHCR_TOKEN=$(echo \"$SECRET_JSON\" | jq -r .token)",
 
-            # ------------------------------------------------------------
-            # Validate secrets (fail fast, explicit errors)
-            # ------------------------------------------------------------
-            "[ -n \"$GHCR_USER\" ] || (echo 'ERROR: GHCR username is empty' && exit 1)",
-            "[ -n \"$GHCR_TOKEN\" ] || (echo 'ERROR: GHCR token is empty' && exit 1)",
+            # Validate secrets
+            "[ -n \"$GHCR_USER\" ] || (echo 'ERROR: GHCR username empty' && exit 1)",
+            "[ -n \"$GHCR_TOKEN\" ] || (echo 'ERROR: GHCR token empty' && exit 1)",
 
-            # ------------------------------------------------------------
-            # Authenticate Docker to GHCR
-            # ------------------------------------------------------------
+            # Login to GHCR
             "echo \"$GHCR_TOKEN\" | docker login ghcr.io -u \"$GHCR_USER\" --password-stdin",
 
-            # ------------------------------------------------------------
-            # Deploy container (idempotent)
-            # ------------------------------------------------------------
+            # Deploy container
             "docker pull {{ Image }}",
             "docker stop nodejs-shopping || true",
             "docker rm nodejs-shopping || true",
