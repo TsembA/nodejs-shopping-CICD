@@ -25,7 +25,7 @@ resource "aws_ssm_document" "docker_deploy" {
         name   = "deploy"
         inputs = {
           runCommand = [
-            "set -euo pipefail",
+            "set -eu",
             "export AWS_REGION=us-west-1",
 
             # Ensure jq exists (Ubuntu AMI safe)
