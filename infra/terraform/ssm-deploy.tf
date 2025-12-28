@@ -1,12 +1,12 @@
 # FILE: infra/terraform/ssm-deploy.tf
 
-resource "aws_ssm_document" "docker_deploy" {
-  name          = "NodejsShopping-DockerDeploy"
-  document_type = "Command"
+locals {
+  ssm_document_name = "NodejsShopping-DockerDeploy-v1" // bump version when logic changes
+}
 
-  lifecycle {
-    create_before_destroy = true // added
-  }
+resource "aws_ssm_document" "docker_deploy" {
+  name          = local.ssm_document_name
+  document_type = "Command"
 
   content = jsonencode({
     schemaVersion = "2.2"
@@ -26,11 +26,9 @@ resource "aws_ssm_document" "docker_deploy" {
         inputs = {
           runCommand = [
             "set -euo pipefail",
-
-            # Explicit region for AWS CLI inside SSM
             "export AWS_REGION=us-west-1",
 
-            # Ensure jq exists (idempotent)
+            # Ensure jq exists (Ubuntu AMI safe)
             "command -v jq >/dev/null 2>&1 || (apt-get update -y && apt-get install -y jq)",
 
             # Fetch GHCR credentials
