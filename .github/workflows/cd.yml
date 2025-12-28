@@ -11,10 +11,11 @@ permissions:
 env:
   TF_INPUT: "false"
   TF_IN_AUTOMATION: "true"
+  AWS_REGION: us-west-1
 
 jobs:
   terraform:
-    name: Deploy Infrastructure
+    name: Deploy Infrastructure & App
     runs-on: ubuntu-22.04
 
     steps:
@@ -26,7 +27,6 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-1
-          audience: sts.amazonaws.com
           role-session-name: gha-terraform
 
       - name: Setup Terraform
@@ -41,12 +41,22 @@ jobs:
       - name: Terraform Plan
         working-directory: infra/terraform
         run: |
-          terraform plan -input=false -lock-timeout=1m \
+          terraform plan \
+            -lock-timeout=1m \
             -var-file=env/prod.tfvars \
             -var="docker_image=ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${GITHUB_SHA}" \
             -out=tfplan
 
       - name: Terraform Apply
         working-directory: infra/terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Deploy via SSM Document
+        env:
+          IMAGE: ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${{ github.sha }}
         run: |
-          terraform apply -input=false -lock-timeout=1m -auto-approve tfplan
+          aws ssm send-command \
+            --region "$AWS_REGION" \
+            --document-name "NodejsShopping-DockerDeploy" \
+            --targets "Key=tag:Project,Values=nodejs-shopping" \
+            --parameters Image="$IMAGE"
