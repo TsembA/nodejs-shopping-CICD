@@ -57,6 +57,9 @@ jobs:
         run: |
           aws ssm send-command \
             --region "$AWS_REGION" \
-            --document-name "NodejsShopping-DockerDeploy" \
+            --document-name "NodejsShopping-DockerDeploy-v1" \
             --targets "Key=tag:Project,Values=nodejs-shopping" \
-            --parameters Image="$IMAGE"
+            --parameters "{\"Image\":[\"$IMAGE\"]}" \
+            --timeout-seconds 600 \
+            --max-concurrency "1" \
+            --max-errors "0"
