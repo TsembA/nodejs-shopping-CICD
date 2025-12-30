@@ -20,9 +20,19 @@ resource "aws_ssm_document" "docker_compose_deploy" {
         name   = "deploy"
         inputs = {
           runCommand = [
-            "set -e",
-            "mkdir -p /opt/nodejs-shopping",
-            "cd /opt/nodejs-shopping",
+            "set -euo pipefail",
+
+            "APP_DIR=/opt/nodejs-shopping",
+            "mkdir -p ${APP_DIR}",
+            "cd ${APP_DIR}",
+
+            # Fetch SESSION_SECRET securely from AWS Secrets Manager
+            "SESSION_SECRET=$(aws secretsmanager get-secret-value --secret-id nodejs-shopping/prod/session-secret --query SecretString --output text)",
+
+            # Export variables for docker-compose
+            "export SESSION_SECRET",
+            "export IMAGE={{ Image }}",
+
             "docker-compose pull",
             "docker-compose up -d"
           ]
