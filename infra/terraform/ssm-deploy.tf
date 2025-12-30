@@ -22,7 +22,7 @@ resource "aws_ssm_document" "docker_compose_deploy" {
         name   = "deploy"
         inputs = {
           runCommand = [
-            "set -euo pipefail",
+            "set -eu",
 
             "APP_DIR=/opt/nodejs-shopping",
             "mkdir -p $$APP_DIR",
