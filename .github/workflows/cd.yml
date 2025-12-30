@@ -65,17 +65,20 @@ jobs:
             --max-errors "0"
             - name: Upload docker-compose to EC2
 
-      - name: Deploy docker-compose file
+      - name: Deploy via SSM Document
+        shell: bash
+        env:
+          IMAGE: ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${{ github.sha }}
         run: |
+          set -eu
+
           aws ssm send-command \
-            --region "$AWS_REGION" \
-            --document-name "AWS-RunShellScript" \
+            --region "${AWS_REGION}" \
+            --document-name "NodejsShopping-DockerDeploy-v1" \
             --targets "Key=tag:Project,Values=nodejs-shopping" \
-            --parameters '{
-              "commands": [
-                "cat > /opt/nodejs-shopping/docker-compose.yml << \"EOF\"",
-                "'"$(sed 's/"/\\"/g' docker-compose.yml)"'",
-                "EOF"
-              ]
-            }'
+            --parameters "Image=${IMAGE}" \
+            --timeout-seconds 600 \
+            --max-concurrency "1" \
+            --max-errors "0"
+
 
