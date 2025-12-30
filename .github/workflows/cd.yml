@@ -63,3 +63,19 @@ jobs:
             --timeout-seconds 600 \
             --max-concurrency "1" \
             --max-errors "0"
+            - name: Upload docker-compose to EC2
+
+      - name: Deploy docker-compose file
+        run: |
+          aws ssm send-command \
+            --region "$AWS_REGION" \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=tag:Project,Values=nodejs-shopping" \
+            --parameters '{
+              "commands": [
+                "cat > /opt/nodejs-shopping/docker-compose.yml << \"EOF\"",
+                "'"$(sed 's/"/\\"/g' docker-compose.yml)"'",
+                "EOF"
+              ]
+            }'
+
