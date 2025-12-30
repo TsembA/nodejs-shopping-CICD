@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowSSMSendCommand",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:SendCommand",
+          "ssm:ListCommandInvocations",
+          "ssm:GetCommandInvocation"
+        ],
+        "Resource": [
+          "arn:aws:ssm:us-west-1:*:document/NodejsShopping-DockerDeploy-v1",
+          "arn:aws:ec2:us-west-1:*:instance/*"
+        ]
+      },
+      {
+        "Sid": "AllowDescribeInstances",
+        "Effect": "Allow",
+        "Action": "ec2:DescribeInstances",
+        "Resource": "*"
+      }
+    ]
+  }
+  

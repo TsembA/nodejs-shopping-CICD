@@ -1,3 +1,5 @@
+# FILE: .github/workflows/ci-build-push.yml
+
 name: CI - Build & Push Image
 
 on:
@@ -13,27 +15,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # ------------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # ------------------------------------------------------------
+      # Node.js
+      # ------------------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
 
-      - run: npm ci
-      - run: node -c app.js
+      - name: Install dependencies
+        run: npm ci
 
-      - uses: docker/login-action@v3
+      - name: Validate JS syntax
+        run: node -c app.js
+
+      # ------------------------------------------------------------
+      # Docker auth
+      # ------------------------------------------------------------
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v5
+      # ------------------------------------------------------------
+      # Buildx (REQUIRED for GHA cache)
+      # ------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      # ------------------------------------------------------------
+      # Build & Push
+      # ------------------------------------------------------------
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           platforms: linux/amd64
+          tags: ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ghcr.io/tsemba/nodejs-shopping-cicd/nodejs-shopping:${{ github.sha }}

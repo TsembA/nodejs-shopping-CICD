@@ -25,17 +25,14 @@ resource "aws_ssm_document" "docker_compose_deploy" {
             "set -eu",
 
             "APP_DIR=/opt/nodejs-shopping",
-            "mkdir -p $$APP_DIR",
-            "cd $$APP_DIR",
+            "mkdir -p $${APP_DIR}",
+            "cd $${APP_DIR}",
 
-            # Fetch secret (SINGLE LINE – Terraform safe)
             "SESSION_SECRET=$$(aws secretsmanager get-secret-value --secret-id nodejs-shopping/prod/session-secret --query SecretString --output text)",
 
-            # Write env file
-            "echo \"SESSION_SECRET=$$SESSION_SECRET\" > .env",
+            "echo \"SESSION_SECRET=$${SESSION_SECRET}\" > .env",
             "echo \"IMAGE={{ Image }}\" >> .env",
 
-            # Deploy
             "docker-compose pull",
             "docker-compose up -d --force-recreate"
           ]
