@@ -1,3 +1,5 @@
+# FILE: infra/terraform/ssm-deploy.tf
+
 resource "aws_ssm_document" "docker_compose_deploy" {
   name            = "NodejsShopping-DockerDeploy-v1"
   document_type   = "Command"
@@ -26,15 +28,16 @@ resource "aws_ssm_document" "docker_compose_deploy" {
             "mkdir -p $$APP_DIR",
             "cd $$APP_DIR",
 
-            # Fetch SESSION_SECRET securely from AWS Secrets Manager
-            "SESSION_SECRET=$(aws secretsmanager get-secret-value --secret-id nodejs-shopping/prod/session-secret --query SecretString --output text)",
+            # Fetch secret (SINGLE LINE – Terraform safe)
+            "SESSION_SECRET=$$(aws secretsmanager get-secret-value --secret-id nodejs-shopping/prod/session-secret --query SecretString --output text)",
 
-            # Export variables for docker-compose
-            "export SESSION_SECRET",
-            "export IMAGE={{ Image }}",
+            # Write env file
+            "echo \"SESSION_SECRET=$$SESSION_SECRET\" > .env",
+            "echo \"IMAGE={{ Image }}\" >> .env",
 
+            # Deploy
             "docker-compose pull",
-            "docker-compose up -d"
+            "docker-compose up -d --force-recreate"
           ]
         }
       }
