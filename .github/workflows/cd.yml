@@ -58,14 +58,32 @@ jobs:
         run: |
           set -euo pipefail
 
-          aws ssm send-command \
+          COMMAND_ID=$(aws ssm send-command \
             --region "${AWS_REGION}" \
             --document-name "NodejsShopping-DockerDeploy-v1" \
             --targets "Key=tag:Project,Values=nodejs-shopping" \
             --parameters "Image=${IMAGE}" \
             --timeout-seconds 600 \
             --max-concurrency "1" \
-            --max-errors "0"
+            --max-errors "0" \
+            --query "Command.CommandId" \
+            --output text)
 
+          echo "SSM Command ID: ${COMMAND_ID}"
 
+          aws ssm wait command-executed \
+            --region "${AWS_REGION}" \
+            --command-id "${COMMAND_ID}"
 
+          STATUS=$(aws ssm list-command-invocations \
+            --region "${AWS_REGION}" \
+            --command-id "${COMMAND_ID}" \
+            --query "CommandInvocations[0].Status" \
+            --output text)
+
+          echo "SSM command status: ${STATUS}"
+
+          if [ "${STATUS}" != "Success" ]; then
+            echo "SSM deployment failed"
+            exit 1
+          fi
