@@ -58,10 +58,23 @@ jobs:
         run: |
           set -euo pipefail
 
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --region "${AWS_REGION}" \
+            --filters "Name=tag:Project,Values=nodejs-shopping" "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text)
+
+          if [ -z "${INSTANCE_IDS}" ]; then
+            echo "No running EC2 instances found"
+            exit 1
+          fi
+
+          echo "Target instances: ${INSTANCE_IDS}"
+
           COMMAND_ID=$(aws ssm send-command \
             --region "${AWS_REGION}" \
             --document-name "NodejsShopping-DockerDeploy-v1" \
-            --targets "Key=tag:Project,Values=nodejs-shopping" \
+            --instance-ids ${INSTANCE_IDS} \
             --parameters "Image=${IMAGE}" \
             --timeout-seconds 600 \
             --max-concurrency "1" \
@@ -71,19 +84,25 @@ jobs:
 
           echo "SSM Command ID: ${COMMAND_ID}"
 
-          aws ssm wait command-executed \
-            --region "${AWS_REGION}" \
-            --command-id "${COMMAND_ID}"
+          for INSTANCE_ID in ${INSTANCE_IDS}; do
+            echo "Waiting for command on ${INSTANCE_ID}"
 
-          STATUS=$(aws ssm list-command-invocations \
-            --region "${AWS_REGION}" \
-            --command-id "${COMMAND_ID}" \
-            --query "CommandInvocations[0].Status" \
-            --output text)
+            aws ssm wait command-executed \
+              --region "${AWS_REGION}" \
+              --command-id "${COMMAND_ID}" \
+              --instance-id "${INSTANCE_ID}"
 
-          echo "SSM command status: ${STATUS}"
+            STATUS=$(aws ssm list-command-invocations \
+              --region "${AWS_REGION}" \
+              --command-id "${COMMAND_ID}" \
+              --instance-id "${INSTANCE_ID}" \
+              --query "CommandInvocations[0].Status" \
+              --output text)
 
-          if [ "${STATUS}" != "Success" ]; then
-            echo "SSM deployment failed"
-            exit 1
-          fi
+            echo "Instance ${INSTANCE_ID} status: ${STATUS}"
+
+            if [ "${STATUS}" != "Success" ]; then
+              echo "Deployment failed on ${INSTANCE_ID}"
+              exit 1
+            fi
+          done
