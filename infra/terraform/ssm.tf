@@ -25,7 +25,7 @@ resource "aws_ssm_document" "deploy" {
           "cd /opt/app",
 
           "cat > docker-compose.yml <<'EOF'",
-          templatefile("${path.module}/../../app/docker-compose.yml", {
+          templatefile("${path.module}/templates/docker-compose.yml.tpl", {
             image = var.image
           }),
           "EOF",
