@@ -1,5 +1,4 @@
 // FILE: infra/terraform/ssm.tf
-// changed
 
 resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
@@ -12,20 +11,21 @@ resource "aws_ssm_document" "deploy" {
     mainSteps = [{
       action = "aws:runShellScript"
       name   = "deploy"
+
       inputs = {
         runCommand = [
           "set -euxo pipefail",
 
-          # --- Docker install (Ubuntu 22.04) ---
-          "apt-get update -y",
-          "apt-get install -y ca-certificates curl gnupg",
-          "apt-get install -y docker.io docker-compose-plugin",
-          "systemctl enable docker",
-          "systemctl start docker",
-          "usermod -aG docker ssm-user || true",
+          "sudo apt-get update -y",
+          "sudo apt-get install -y docker.io docker-compose-plugin",
 
-          # --- App ---
-          "mkdir -p /opt/app",
+          "sudo systemctl enable docker",
+          "sudo systemctl start docker",
+
+          "sudo usermod -aG docker ssm-user",
+
+          "sudo mkdir -p /opt/app",
+          "sudo chown -R ssm-user:ssm-user /opt/app",
           "cd /opt/app",
 
           "cat > docker-compose.yml <<'EOF'",

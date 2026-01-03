@@ -1,6 +1,3 @@
-// FILE: infra/terraform/ssm-association.tf
-// changed
-
 resource "aws_ssm_association" "deploy_app" {
   name = aws_ssm_document.deploy.name
 
@@ -8,6 +5,8 @@ resource "aws_ssm_association" "deploy_app" {
     key    = "InstanceIds"
     values = [aws_instance.app.id]
   }
+
+  apply_only_at_cron_interval = false
 
   lifecycle {
     replace_triggered_by = [

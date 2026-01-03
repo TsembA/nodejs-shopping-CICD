@@ -25,3 +25,7 @@ resource "aws_iam_instance_profile" "this" {
   name = "nodejs-shopping-ec2-profile"
   role = aws_iam_role.ec2_ssm_role.name
 }
+resource "aws_iam_role_policy_attachment" "ssm_logs" {
+  role       = aws_iam_role.ec2_ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
