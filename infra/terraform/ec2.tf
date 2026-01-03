@@ -1,3 +1,5 @@
+// FILE: infra/terraform/ec2.tf
+
 resource "aws_instance" "app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t3.micro"
