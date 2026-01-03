@@ -14,13 +14,17 @@ resource "aws_ssm_document" "deploy" {
       name   = "deploy"
       inputs = {
         runCommand = [
-          "set -e",
+          "set -euxo pipefail",
 
+          # --- Docker install (Ubuntu 22.04) ---
           "apt-get update -y",
+          "apt-get install -y ca-certificates curl gnupg",
           "apt-get install -y docker.io docker-compose-plugin",
           "systemctl enable docker",
           "systemctl start docker",
+          "usermod -aG docker ssm-user || true",
 
+          # --- App ---
           "mkdir -p /opt/app",
           "cd /opt/app",
 
