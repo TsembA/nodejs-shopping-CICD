@@ -5,10 +5,6 @@ resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
   document_type = "Command"
 
-  depends_on = [
-    aws_cloudwatch_log_group.ssm // added
-  ]
-
   content = jsonencode({
     schemaVersion = "2.2"
     description   = "Deploy NodeJS app via docker-compose"
@@ -19,7 +15,7 @@ resource "aws_ssm_document" "deploy" {
 
       inputs = {
         runCommand = [
-          "set -euxo pipefail",
+          "set -eux", // 🔥 FIXED: removed -o pipefail
 
           "apt-get update -y",
           "apt-get install -y docker.io docker-compose-plugin",
@@ -31,33 +27,14 @@ resource "aws_ssm_document" "deploy" {
           "cd /opt/app",
 
           "cat > docker-compose.yml <<'EOF'",
-          "version: '3.8'",
-          "services:",
-          "  app:",
-          "    image: ${var.image}",
-          "    container_name: nodejs-shopping-app",
-          "    ports:",
-          "      - \"80:3000\"",
-          "    environment:",
-          "      PORT: \"3000\"",
-          "      MONGODB_URI: \"mongodb://mongo:27017/shop\"",
-          "  mongo:",
-          "    image: mongo:6",
-          "    container_name: mongo",
-          "    volumes:",
-          "      - mongo-data:/data/db",
-          "volumes:",
-          "  mongo-data:",
+          templatefile("${path.module}/templates/docker-compose.yml.tpl", {
+            image = var.image
+          }),
           "EOF",
 
-          "docker compose pull",
-          "docker compose up -d"
+          "/usr/bin/docker compose pull",
+          "/usr/bin/docker compose up -d"
         ]
-
-        cloudWatchOutputConfig = {
-          cloudWatchLogGroupName  = "/ssm/nodejs-shopping"
-          cloudWatchOutputEnabled = true
-        }
       }
     }]
   })
