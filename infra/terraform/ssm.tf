@@ -1,14 +1,6 @@
 // FILE: infra/terraform/ssm.tf
 // changed
 
-locals {
-  docker_compose_b64 = base64encode(
-    templatefile("${path.module}/templates/docker-compose.yml.tpl", {
-      image = var.image
-    })
-  )
-}
-
 resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
   document_type = "Command"
@@ -25,19 +17,40 @@ resource "aws_ssm_document" "deploy" {
         runCommand = [
           "set -euxo pipefail",
 
+          # install docker
           "apt-get update -y",
           "apt-get install -y docker.io docker-compose-plugin",
 
           "systemctl enable docker",
           "systemctl start docker",
 
+          # app directory
           "mkdir -p /opt/app",
           "cd /opt/app",
 
-          "echo '${local.docker_compose_b64}' | base64 -d > docker-compose.yml",
+          # docker-compose
+          "cat > docker-compose.yml <<'EOF'",
+          "version: '3.8'",
+          "services:",
+          "  app:",
+          "    image: ${var.image}",
+          "    container_name: nodejs-shopping-app",
+          "    ports:",
+          "      - \"80:3000\"",
+          "    environment:",
+          "      PORT: \"3000\"",
+          "      MONGODB_URI: \"mongodb://mongo:27017/shop\"",
+          "  mongo:",
+          "    image: mongo:6",
+          "    container_name: mongo",
+          "    volumes:",
+          "      - mongo-data:/data/db",
+          "volumes:",
+          "  mongo-data:",
+          "EOF",
 
-          "/usr/bin/docker compose pull",
-          "/usr/bin/docker compose up -d"
+          "docker compose pull",
+          "docker compose up -d"
         ]
       }
     }]
