@@ -1,6 +1,3 @@
-// FILE: infra/terraform/ssm.tf
-// changed
-
 resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
   document_type = "Command"
@@ -12,19 +9,9 @@ resource "aws_ssm_document" "deploy" {
     mainSteps = [{
       action = "aws:runShellScript"
       name   = "deploy"
-
       inputs = {
         runCommand = [
-          "set -eux", // 🔥 FIXED: removed -o pipefail
-
-          "apt-get update -y",
-          "apt-get install -y docker.io docker-compose-plugin",
-
-          "systemctl enable docker",
-          "systemctl start docker",
-
-          "mkdir -p /opt/app",
-          "cd /opt/app",
+          "cd /opt/app || exit 1",
 
           "cat > docker-compose.yml <<'EOF'",
           templatefile("${path.module}/templates/docker-compose.yml.tpl", {
@@ -32,8 +19,8 @@ resource "aws_ssm_document" "deploy" {
           }),
           "EOF",
 
-          "/usr/bin/docker compose pull",
-          "/usr/bin/docker compose up -d"
+          "docker compose pull",
+          "docker compose up -d"
         ]
       }
     }]
