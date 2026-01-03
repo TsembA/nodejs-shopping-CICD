@@ -5,6 +5,10 @@ resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
   document_type = "Command"
 
+  depends_on = [
+    aws_cloudwatch_log_group.ssm // added
+  ]
+
   content = jsonencode({
     schemaVersion = "2.2"
     description   = "Deploy NodeJS app via docker-compose"
@@ -51,7 +55,7 @@ resource "aws_ssm_document" "deploy" {
         ]
 
         cloudWatchOutputConfig = {
-          cloudWatchLogGroupName = "/ssm/nodejs-shopping"
+          cloudWatchLogGroupName  = "/ssm/nodejs-shopping"
           cloudWatchOutputEnabled = true
         }
       }
