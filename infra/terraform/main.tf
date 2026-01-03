@@ -1,8 +1,6 @@
-locals {
-  project = "nodejs-shopping"
-  owner   = "Arno"
-}
 terraform {
+  required_version = ">= 1.5.0"
+
   backend "s3" {
     bucket         = "nodejs-shopping-terraform-state"
     key            = "prod/terraform.tfstate"
@@ -10,4 +8,15 @@ terraform {
     dynamodb_table = "terraform-state-lock"
     encrypt        = true
   }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
 }

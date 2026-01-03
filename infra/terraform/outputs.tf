@@ -1,4 +1,14 @@
-output "public_ip" {
-  value       = aws_eip.app.public_ip
-  description = "Elastic IP of the application"
+output "ec2_public_ip" {
+  description = "Public IP of the application EC2 instance"
+  value       = aws_instance.app.public_ip
+}
+
+output "application_url" {
+  description = "Public URL of the NodeJS application"
+  value       = "http://${aws_instance.app.public_ip}"
+}
+
+output "ssm_instance_id" {
+  description = "Instance ID for SSM operations"
+  value       = aws_instance.app.id
 }
