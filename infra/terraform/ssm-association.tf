@@ -8,6 +8,10 @@ resource "aws_ssm_association" "deploy_app" {
     values = [aws_instance.app.id]
   }
 
+  parameters = {
+    force = timestamp()
+  }
+
   depends_on = [
     aws_instance.app,
     aws_iam_instance_profile.this,
