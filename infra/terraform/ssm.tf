@@ -1,4 +1,13 @@
 // FILE: infra/terraform/ssm.tf
+// changed
+
+locals {
+  docker_compose_b64 = base64encode(
+    templatefile("${path.module}/templates/docker-compose.yml.tpl", {
+      image = var.image
+    })
+  )
+}
 
 resource "aws_ssm_document" "deploy" {
   name          = "NodejsShopping-DockerDeploy"
@@ -16,26 +25,19 @@ resource "aws_ssm_document" "deploy" {
         runCommand = [
           "set -euxo pipefail",
 
-          "sudo apt-get update -y",
-          "sudo apt-get install -y docker.io docker-compose-plugin",
+          "apt-get update -y",
+          "apt-get install -y docker.io docker-compose-plugin",
 
-          "sudo systemctl enable docker",
-          "sudo systemctl start docker",
+          "systemctl enable docker",
+          "systemctl start docker",
 
-          "sudo usermod -aG docker ssm-user",
-
-          "sudo mkdir -p /opt/app",
-          "sudo chown -R ssm-user:ssm-user /opt/app",
+          "mkdir -p /opt/app",
           "cd /opt/app",
 
-          "cat > docker-compose.yml <<'EOF'",
-          templatefile("${path.module}/templates/docker-compose.yml.tpl", {
-            image = var.image
-          }),
-          "EOF",
+          "echo '${local.docker_compose_b64}' | base64 -d > docker-compose.yml",
 
-          "docker compose pull",
-          "docker compose up -d"
+          "/usr/bin/docker compose pull",
+          "/usr/bin/docker compose up -d"
         ]
       }
     }]
