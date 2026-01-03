@@ -17,18 +17,15 @@ resource "aws_ssm_document" "deploy" {
         runCommand = [
           "set -euxo pipefail",
 
-          # install docker
           "apt-get update -y",
           "apt-get install -y docker.io docker-compose-plugin",
 
           "systemctl enable docker",
           "systemctl start docker",
 
-          # app directory
           "mkdir -p /opt/app",
           "cd /opt/app",
 
-          # docker-compose
           "cat > docker-compose.yml <<'EOF'",
           "version: '3.8'",
           "services:",
@@ -52,6 +49,11 @@ resource "aws_ssm_document" "deploy" {
           "docker compose pull",
           "docker compose up -d"
         ]
+
+        cloudWatchOutputConfig = {
+          cloudWatchLogGroupName = "/ssm/nodejs-shopping"
+          cloudWatchOutputEnabled = true
+        }
       }
     }]
   })
