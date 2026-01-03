@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         working-directory: infra/terraform
@@ -22,4 +24,4 @@ jobs:
         working-directory: infra/terraform
         run: |
           terraform apply -auto-approve \
-            -var="image=ghcr.io/${{ github.repository }}:${{ github.sha }}"
+            -var="image=ghcr.io/tsemba/nodejs-shopping-cicd:${{ github.sha }}"
