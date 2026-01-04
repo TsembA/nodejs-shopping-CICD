@@ -1,0 +1,10 @@
+---
+- name: Deploy NodeJS Shopping application
+  hosts: app
+  become: true
+
+  vars:
+    app_dir: /opt/nodejs-shopping
+
+  roles:
+    - app

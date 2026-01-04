@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  app:
+    image: ${IMAGE}
+    container_name: nodejs-shopping-app
+    ports:
+      - "80:3000"
+    environment:
+      PORT: "3000"
+      MONGODB_URI: "mongodb://mongo:27017/shop"
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /nodejs-shopping/app
+        awslogs-region: us-west-1
+        awslogs-stream-prefix: app
+
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    volumes:
+      - mongo-data:/data/db
+    restart: un

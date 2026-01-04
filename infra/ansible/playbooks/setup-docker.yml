@@ -1,0 +1,7 @@
+---
+- name: Setup Docker on EC2 instances
+  hosts: app
+  become: true
+
+  roles:
+    - docker
