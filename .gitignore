@@ -22,7 +22,8 @@ prod.tfvars
 *.tfstate
 *.tfstate.*
 crash.log
-
+infra/terraform-backend/.terraform
+infra/terraform/.terraform/providers
 ############################
 # OS
 ############################
