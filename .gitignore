@@ -12,15 +12,14 @@ yarn-error.log*
 .env
 .env.*
 /env/prod*
-prod.tfvars
 *.tfvars
 
 ############################
 # Terraform
 ############################
-.terraform/
-*.tfstate
-*.tfstate.*
+**/.terraform/*
+**/*.tfstate
+**/*.tfstate.backup
 *.tfplan
 crash.log
 
