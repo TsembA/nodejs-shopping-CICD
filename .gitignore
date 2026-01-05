@@ -8,7 +8,7 @@ yarn-error.log*
 
 ############################
 # Environment / Secrets
-#############################
+############################
 .env
 .env.*
 /env/prod*
@@ -21,10 +21,24 @@ prod.tfvars
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfplan
 crash.log
-infra/terraform-backend/.terraform
-infra/terraform/.terraform/providers
+
 ############################
-# OS
+# Ansible
 ############################
+.ansible/
+*.retry
+ansible.log
+
+############################
+# Docker
+############################
+*.tar
+
+############################
+# IDE / OS
+############################
+.vscode/
+.idea/
 .DS_Store
