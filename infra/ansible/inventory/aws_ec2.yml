@@ -9,7 +9,7 @@ filters:
   instance-state-name: running
 
 keyed_groups:
-  - key: tags.Role
+  - key: tag_Role        # changed
     prefix: role
 
 compose:

@@ -1,2 +1,0 @@
-# FILE: infra/ansible/group_vars/role_app.yml
-ansible_user: ubuntu
