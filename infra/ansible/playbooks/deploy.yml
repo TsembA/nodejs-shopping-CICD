@@ -1,6 +1,6 @@
 ---
 - name: Deploy NodeJS Shopping application
-  hosts: app
+  hosts: role_app
   become: true
 
   vars:

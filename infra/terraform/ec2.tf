@@ -5,9 +5,11 @@ resource "aws_instance" "app" {
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.app.id]
 
-  key_name = var.ssh_key_name
+  key_name = aws_key_pair.app.key_name
 
   tags = {
     Name = "nodejs-shopping-app"
+    Role = "app"
+    Env  = "prod"
   }
 }

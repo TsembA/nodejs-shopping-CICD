@@ -6,7 +6,18 @@ variable "aws_region" {
   type        = string
   default     = "us-west-1"
 }
+############################
+# SSH
+############################
+variable "ssh_key_name" {
+  description = "AWS EC2 key pair name"
+  type        = string
+}
 
+variable "ssh_public_key_path" {
+  description = "Path to local SSH public key"
+  type        = string
+}
 ############################
 # EC2
 ############################
@@ -15,12 +26,6 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
-
-variable "ssh_key_name" {
-  description = "Existing EC2 Key Pair name for SSH access"
-  type        = string
-}
-
 ############################
 # Application
 ############################

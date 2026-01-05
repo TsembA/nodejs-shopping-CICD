@@ -59,6 +59,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+
       - name: Install Ansible and AWS deps
         run: |
           sudo apt update
@@ -66,7 +74,6 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install boto3 botocore
           ansible-galaxy collection install amazon.aws
-
 
       - name: Deploy via Ansible (SSH)
         run: |
