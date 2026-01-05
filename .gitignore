@@ -41,3 +41,4 @@ ansible.log
 .vscode/
 .idea/
 .DS_Store
+!terraform-backend/terraform.tfvars
