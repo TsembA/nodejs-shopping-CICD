@@ -73,13 +73,14 @@ jobs:
 
           printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
 
-      - name: Install Ansible + AWS deps (single Python)
+      - name: Install Ansible + AWS deps
         run: |
           set -euo pipefail
 
           python3 -m pip install --upgrade pip
-          python3 -m pip install ansible boto3 botocore amazon.aws
-
+          python3 -m pip install ansible boto3 botocore
+          ansible-galaxy collection install amazon.aws
+          
       - name: Deploy via Ansible
         run: |
           set -euo pipefail
