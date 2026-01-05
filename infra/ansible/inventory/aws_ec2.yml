@@ -9,8 +9,8 @@ filters:
   instance-state-name: running
 
 keyed_groups:
-  - key: tag_Role        # changed
-    prefix: role
+  - key: tags.Role        # changed
+    prefix: role          # ok
 
 compose:
   ansible_host: public_ip_address
