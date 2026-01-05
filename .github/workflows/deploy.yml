@@ -36,7 +36,7 @@ jobs:
 
       - name: Deploy via Ansible
         run: |
-          ansible-playbook ansible/playbook.yml \
+          ansible-playbook -i ansible/inventory.ini ansible/playbook.yml \
             -e app_image=ghcr.io/tsemba/nodejs-shopping:${{ github.sha }} \
             -e ghcr_username=${{ github.actor }} \
             -e ghcr_token=${{ secrets.GITHUB_TOKEN }}
