@@ -14,7 +14,7 @@ services:
       options:
         awslogs-region: us-west-1
         awslogs-group: /nodejs-shopping/app
-        awslogs-stream-prefix: app
+        awslogs-stream: app
 
   mongo:
     image: mongo:6
