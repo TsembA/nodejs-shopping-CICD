@@ -4,8 +4,8 @@ variable "aws_region" {
 }
 
 variable "instance_type" {
-  type        = string
-  default     = "t3.micro"
+  type    = string
+  default = "t3.micro"
 }
 
 variable "key_name" {
@@ -21,4 +21,8 @@ variable "allowed_ssh_cidr" {
 variable "public_key_path" {
   type        = string
   description = "Absolute path to SSH public key (.pub)"
+}
+variable "bastion_instance_type" {
+  type    = string
+  default = "t3.micro"
 }

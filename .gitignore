@@ -29,6 +29,8 @@ crash.log
 .ansible/
 *.retry
 ansible.log
+ansible/inventory.ini
+
 
 ############################
 # Docker
