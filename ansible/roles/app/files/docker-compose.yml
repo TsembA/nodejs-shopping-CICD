@@ -28,7 +28,7 @@ services:
       options:
         awslogs-region: us-west-1
         awslogs-group: /nodejs-shopping/mongo
-        awslogs-stream-prefix: mongo
+        awslogs-stream: mongo
 
 volumes:
   mongo-data:
